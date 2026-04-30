@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Family Brew</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* ── Tokens ── */
+  :root {
+    --cream:     #F5EFE4;
+    --cream-dark:#EDE4D3;
+    --espresso:  #2C1A0E;
+    --mocha:     #5C3D2E;
+    --caramel:   #C8894A;
+    --caramel-lt:#DFB07A;
+    --latte:     #A67C52;
+    --steam:     #F9F4EC;
+    --text:      #2C1A0E;
+    --text-mid:  #7A5C44;
+    --text-lt:   #B89880;
+    --border:    #DDD0BC;
+    --shadow:    rgba(44,26,14,0.10);
+    --ff-display: 'Playfair Display', Georgia, serif;
+    --ff-body:    'Jost', sans-serif;
+    --r:          12px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--text);
+    font-family: var(--ff-body);
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Grain Overlay ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: .5;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--espresso);
+    color: var(--cream);
+    padding: 2.5rem 1.5rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 32px;
+    background: var(--cream);
+    clip-path: ellipse(55% 100% at 50% 100%);
+  }
+
+  .logo-mark {
+    display: inline-block;
+    width: 52px; height: 52px;
+    border: 2px solid var(--caramel);
+    border-radius: 50%;
+    margin-bottom: .75rem;
+    position: relative;
+    animation: steam-rise 3s ease-in-out infinite;
+  }
+
+  .logo-mark svg {
+    width: 28px; height: 28px;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    fill: var(--caramel);
+  }
+
+  @keyframes steam-rise {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-4px); }
+  }
+
+  header h1 {
+    font-family: var(--ff-display);
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    font-weight: 600;
+    letter-spacing: .02em;
+    color: var(--cream);
+  }
+
+  header h1 em {
+    font-style: italic;
+    color: var(--caramel-lt);
+  }
+
+  header p {
+    font-size: .85rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--text-lt);
+    margin-top: .3rem;
+  }
+
+  /* ── Status Banner ── */
+  #status-banner {
+    display: none;
+    background: #4a1a1a;
+    color: #f5c5c5;
+    text-align: center;
+    padding: .7rem 1rem;
+    font-size: .85rem;
+    letter-spacing: .08em;
+    font-weight: 400;
+  }
+
+  #status-banner.visible { display: block; }
+
+  /* ── Main Layout ── */
+  main {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 5rem;
+  }
+
+  /* ── Section Labels ── */
+  .section-label {
+    font-size: .7rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--text-lt);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Menu ── */
+  .menu-section { margin-bottom: 2.5rem; }
+
+  .menu-section h2 {
+    font-family: var(--ff-display);
+    font-size: 1.35rem;
+    font-weight: 400;
+    color: var(--mocha);
+    margin-bottom: 1rem;
+  }
+
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+    gap: .6rem;
+  }
+
+  .menu-item {
+    background: var(--steam);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r);
+    padding: .85rem 1rem;
+    cursor: pointer;
+    transition: all .2s ease;
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    user-select: none;
+  }
+
+  .menu-item:hover {
+    border-color: var(--caramel);
+    background: #FDF7EE;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--shadow);
+  }
+
+  .menu-item.selected {
+    border-color: var(--caramel);
+    background: #FDF0DC;
+    box-shadow: 0 0 0 3px rgba(200,137,74,.15);
+  }
+
+  .menu-item .icon { font-size: 1.3rem; flex-shrink: 0; }
+
+  .menu-item .name {
+    font-size: .9rem;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .menu-item .desc {
+    font-size: .72rem;
+    color: var(--text-lt);
+    margin-top: .15rem;
+  }
+
+  /* ── Order Form ── */
+  .order-form {
+    background: var(--steam);
+    border: 1.5px solid var(--border);
+    border-radius: calc(var(--r) * 1.5);
+    padding: 1.75rem;
+    margin-top: 1rem;
+    box-shadow: 0 2px 20px var(--shadow);
+  }
+
+  .order-form h2 {
+    font-family: var(--ff-display);
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    color: var(--espresso);
+  }
+
+  .form-row { margin-bottom: 1.1rem; }
+
+  label {
+    display: block;
+    font-size: .75rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    margin-bottom: .4rem;
+    font-weight: 500;
+  }
+
+  input[type="text"], textarea, select {
+    width: 100%;
+    background: var(--cream);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: .7rem .9rem;
+    font-family: var(--ff-body);
+    font-size: .9rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color .2s;
+    -webkit-appearance: none;
+  }
+
+  input[type="text"]:focus,
+  textarea:focus,
+  select:focus {
+    border-color: var(--caramel);
+    box-shadow: 0 0 0 3px rgba(200,137,74,.12);
+  }
+
+  textarea { resize: vertical; min-height: 72px; }
+
+  .selected-drink-display {
+    background: var(--cream-dark);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: .65rem .9rem;
+    font-size: .9rem;
+    color: var(--text-mid);
+    font-style: italic;
+  }
+
+  /* ── Submit Button ── */
+  .btn-order {
+    width: 100%;
+    background: var(--espresso);
+    color: var(--cream);
+    border: none;
+    border-radius: 50px;
+    padding: 1rem;
+    font-family: var(--ff-body);
+    font-size: .95rem;
+    font-weight: 500;
+    letter-spacing: .1em;
+    cursor: pointer;
+    transition: all .25s ease;
+    margin-top: .5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-order::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,.07) 100%);
+  }
+
+  .btn-order:hover:not(:disabled) {
+    background: var(--mocha);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(44,26,14,.3);
+  }
+
+  .btn-order:active:not(:disabled) { transform: translateY(0); }
+
+  .btn-order:disabled {
+    background: #c0b09a;
+    cursor: not-allowed;
+    opacity: .75;
+  }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed;
+    bottom: 1.5rem; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--espresso);
+    color: var(--cream);
+    padding: .85rem 1.75rem;
+    border-radius: 50px;
+    font-size: .875rem;
+    font-weight: 400;
+    letter-spacing: .05em;
+    box-shadow: 0 8px 32px rgba(0,0,0,.3);
+    transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+    z-index: 100;
+    white-space: nowrap;
+  }
+
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  #toast.error { background: #4a1a1a; }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 2rem 1rem;
+    font-size: .75rem;
+    letter-spacing: .1em;
+    color: var(--text-lt);
+  }
+
+  /* ── Loading Spinner ── */
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(245,239,228,.3);
+    border-top-color: var(--cream);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    margin-right: .5rem;
+    vertical-align: middle;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Fade In Animation ── */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(16px);
+    animation: fadeUp .6s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-up:nth-child(1) { animation-delay: .05s; }
+  .fade-up:nth-child(2) { animation-delay: .12s; }
+  .fade-up:nth-child(3) { animation-delay: .19s; }
+
+  /* ── Responsive ── */
+  @media (max-width: 420px) {
+    .menu-grid { grid-template-columns: 1fr 1fr; }
+    .order-form { padding: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Status banner (shown when closed) -->
+<div id="status-banner">☕ We're currently closed — check back soon!</div>
+
+<header>
+  <div class="logo-mark">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3"/>
+      <style>path{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}</style>
+    </svg>
+  </div>
+  <h1>The Family <em>Brew</em></h1>
+  <p>Our little corner café</p>
+</header>
+
+<main>
+
+  <!-- Espresso -->
+  <div class="menu-section fade-up">
+    <div class="section-label">Espresso</div>
+    <div class="menu-grid" id="cat-espresso">
+      <div class="menu-item" data-drink="Espresso">
+        <span class="icon">☕</span>
+        <div><div class="name">Espresso</div><div class="desc">Pure & intense</div></div>
+      </div>
+      <div class="menu-item" data-drink="Americano">
+        <span class="icon">🖤</span>
+        <div><div class="name">Americano</div><div class="desc">Espresso & hot water</div></div>
+      </div>
+      <div class="menu-item" data-drink="Cappuccino">
+        <span class="icon">☁️</span>
+        <div><div class="name">Cappuccino</div><div class="desc">Equal thirds</div></div>
+      </div>
+      <div class="menu-item" data-drink="Flat White">
+        <span class="icon">🤍</span>
+        <div><div class="name">Flat White</div><div class="desc">Velvety microfoam</div></div>
+      </div>
+      <div class="menu-item" data-drink="Latte">
+        <span class="icon">🥛</span>
+        <div><div class="name">Latte</div><div class="desc">Smooth & milky</div></div>
+      </div>
+      <div class="menu-item" data-drink="Cortado">
+        <span class="icon">🫧</span>
+        <div><div class="name">Cortado</div><div class="desc">Balanced cut</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual Brew -->
+  <div class="menu-section fade-up">
+    <div class="section-label">Manual Brew</div>
+    <div class="menu-grid">
+      <div class="menu-item" data-drink="Pour Over">
+        <span class="icon">⏳</span>
+        <div><div class="name">Pour Over</div><div class="desc">Bright & clean</div></div>
+      </div>
+      <div class="menu-item" data-drink="French Press">
+        <span class="icon">🫙</span>
+        <div><div class="name">French Press</div><div class="desc">Full body & rich</div></div>
+      </div>
+      <div class="menu-item" data-drink="AeroPress">
+        <span class="icon">🔩</span>
+        <div><div class="name">AeroPress</div><div class="desc">Smooth & versatile</div></div>
+      </div>
+      <div class="menu-item" data-drink="Moka Pot">
+        <span class="icon">🏺</span>
+        <div><div class="name">Moka Pot</div><div class="desc">Stovetop espresso</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Iced -->
+  <div class="menu-section fade-up">
+    <div class="section-label">Iced</div>
+    <div class="menu-grid">
+      <div class="menu-item" data-drink="Iced Latte">
+        <span class="icon">🧊</span>
+        <div><div class="name">Iced Latte</div><div class="desc">Cool & creamy</div></div>
+      </div>
+      <div class="menu-item" data-drink="Cold Brew">
+        <span class="icon">🌊</span>
+        <div><div class="name">Cold Brew</div><div class="desc">12-hr steep</div></div>
+      </div>
+      <div class="menu-item" data-drink="Iced Americano">
+        <span class="icon">🫗</span>
+        <div><div class="name">Iced Americano</div><div class="desc">Bold & refreshing</div></div>
+      </div>
+      <div class="menu-item" data-drink="Iced Matcha">
+        <span class="icon">🍵</span>
+        <div><div class="name">Iced Matcha</div><div class="desc">Earthy & vibrant</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Form -->
+  <div class="order-form fade-up">
+    <h2>Place Your Order</h2>
+
+    <div class="form-row">
+      <label>Your Name</label>
+      <input type="text" id="input-name" placeholder="e.g. Mum, Dad, Layla…" autocomplete="off">
+    </div>
+
+    <div class="form-row">
+      <label>Selected Drink</label>
+      <div class="selected-drink-display" id="selected-drink-display">
+        ← Choose a drink from the menu above
+      </div>
+      <input type="hidden" id="input-drink">
+    </div>
+
+    <div class="form-row">
+      <label>Customisations (optional)</label>
+      <textarea id="input-custom" placeholder="e.g. oat milk, no sugar, extra hot, decaf…"></textarea>
+    </div>
+
+    <button class="btn-order" id="btn-order" disabled>
+      Place Order
+    </button>
+  </div>
+
+</main>
+
+<footer>The Family Brew &mdash; Est. Today</footer>
+
+<div id="toast"></div>
+
+<script>
+  // ══════════════════════════════════════════════════════
+  //  CONFIG — paste your deployed Apps Script URL below
+  // ══════════════════════════════════════════════════════
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzZEunPObcpp03g5MlVwvleNINcAiDjK6USnoTtf82aBRsLboYkHwbtW103mYTykIyc/exec";
+
+  // ── State ─────────────────────────────────────────────
+  let selectedDrink = "";
+  let cafeOpen      = true;
+
+  // ── DOM refs ──────────────────────────────────────────
+  const banner  = document.getElementById("status-banner");
+  const btnOrder = document.getElementById("btn-order");
+  const drinkDisplay = document.getElementById("selected-drink-display");
+  const inputDrink = document.getElementById("input-drink");
+  const inputName  = document.getElementById("input-name");
+  const inputCustom = document.getElementById("input-custom");
+  const toast = document.getElementById("toast");
+
+  // ── Check Cafe Status ─────────────────────────────────
+  async function checkStatus() {
+    try {
+      const res  = await fetch(`${SCRIPT_URL}?action=status`);
+      const data = await res.json();
+      cafeOpen = data.status === "Open";
+    } catch (e) {
+      cafeOpen = true; // fallback: assume open if fetch fails
+    }
+    applyStatus();
+  }
+
+  function applyStatus() {
+    if (!cafeOpen) {
+      banner.classList.add("visible");
+      btnOrder.disabled = true;
+      btnOrder.textContent = "We're Currently Closed";
+    } else {
+      banner.classList.remove("visible");
+      updateOrderButton();
+    }
+  }
+
+  // ── Menu Selection ────────────────────────────────────
+  document.querySelectorAll(".menu-item").forEach(item => {
+    item.addEventListener("click", () => {
+      document.querySelectorAll(".menu-item").forEach(i => i.classList.remove("selected"));
+      item.classList.add("selected");
+      selectedDrink = item.dataset.drink;
+      inputDrink.value = selectedDrink;
+      drinkDisplay.textContent = selectedDrink;
+      drinkDisplay.style.color = "var(--espresso)";
+      drinkDisplay.style.fontStyle = "normal";
+      if (cafeOpen) updateOrderButton();
+    });
+  });
+
+  function updateOrderButton() {
+    if (!cafeOpen) return;
+    const ready = selectedDrink && inputName.value.trim();
+    btnOrder.disabled = !ready;
+    btnOrder.textContent = ready ? "Place Order →" : "Place Order";
+  }
+
+  inputName.addEventListener("input", updateOrderButton);
+
+  // ── Submit Order ──────────────────────────────────────
+  btnOrder.addEventListener("click", async () => {
+    const name = inputName.value.trim();
+    if (!name || !selectedDrink) return;
+
+    btnOrder.innerHTML = '<span class="spinner"></span> Sending…';
+    btnOrder.disabled = true;
+
+    const now = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          drink:          selectedDrink,
+          customizations: inputCustom.value.trim(),
+          time:           now,
+        }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast(`☕ Order placed! See you soon, ${name}.`);
+        inputName.value    = "";
+        inputCustom.value  = "";
+        selectedDrink      = "";
+        inputDrink.value   = "";
+        drinkDisplay.textContent = "← Choose a drink from the menu above";
+        drinkDisplay.style.color = "";
+        drinkDisplay.style.fontStyle = "italic";
+        document.querySelectorAll(".menu-item").forEach(i => i.classList.remove("selected"));
+        updateOrderButton();
+      } else {
+        throw new Error(data.error || "Unknown error");
+      }
+    } catch (err) {
+      showToast("⚠️ Couldn't send your order. Try again!", true);
+      updateOrderButton();
+    }
+  });
+
+  // ── Toast ──────────────────────────────────────────────
+  let toastTimer;
+  function showToast(msg, isError = false) {
+    toast.textContent = msg;
+    toast.className   = "show" + (isError ? " error" : "");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.className = ""; }, 3500);
+  }
+
+  // ── Init ───────────────────────────────────────────────
+  checkStatus();
+</script>
+</body>
+</html>

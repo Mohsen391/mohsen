@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — The Family Brew</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:     #F5EFE4;
+    --espresso:  #2C1A0E;
+    --mocha:     #5C3D2E;
+    --caramel:   #C8894A;
+    --caramel-lt:#DFB07A;
+    --latte:     #A67C52;
+    --steam:     #F9F4EC;
+    --text:      #2C1A0E;
+    --text-mid:  #7A5C44;
+    --text-lt:   #B89880;
+    --border:    #DDD0BC;
+    --shadow:    rgba(44,26,14,0.12);
+    --green:     #2d6a4f;
+    --red:       #7a1a1a;
+    --ff-display:'Playfair Display', Georgia, serif;
+    --ff-body:   'Jost', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--espresso);
+    color: var(--cream);
+    font-family: var(--ff-body);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.25rem;
+  }
+
+  /* Grain */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .card {
+    position: relative;
+    z-index: 1;
+    background: rgba(245,239,228,.05);
+    border: 1px solid rgba(245,239,228,.12);
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .logo {
+    font-family: var(--ff-display);
+    font-size: 1.1rem;
+    color: var(--caramel-lt);
+    letter-spacing: .05em;
+    margin-bottom: 1.75rem;
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  /* ── Login Screen ── */
+  #screen-login h2 {
+    font-family: var(--ff-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: .35rem;
+  }
+
+  #screen-login p {
+    font-size: .82rem;
+    color: var(--text-lt);
+    margin-bottom: 1.75rem;
+  }
+
+  .input-wrap { position: relative; margin-bottom: 1rem; }
+
+  input[type="password"] {
+    width: 100%;
+    background: rgba(245,239,228,.08);
+    border: 1.5px solid rgba(245,239,228,.2);
+    border-radius: 10px;
+    padding: .75rem 1rem;
+    font-family: var(--ff-body);
+    font-size: .9rem;
+    color: var(--cream);
+    outline: none;
+    letter-spacing: .08em;
+    transition: border-color .2s;
+  }
+
+  input[type="password"]::placeholder { color: rgba(245,239,228,.35); }
+
+  input[type="password"]:focus {
+    border-color: var(--caramel);
+  }
+
+  .btn-login {
+    width: 100%;
+    background: var(--caramel);
+    color: var(--espresso);
+    border: none;
+    border-radius: 50px;
+    padding: .85rem;
+    font-family: var(--ff-body);
+    font-size: .9rem;
+    font-weight: 500;
+    letter-spacing: .1em;
+    cursor: pointer;
+    transition: all .2s ease;
+  }
+
+  .btn-login:hover { background: var(--caramel-lt); transform: translateY(-1px); }
+
+  .error-msg {
+    font-size: .78rem;
+    color: #f08080;
+    margin-top: .65rem;
+    min-height: 1.2em;
+  }
+
+  /* ── Admin Screen ── */
+  #screen-admin { display: none; }
+
+  #screen-admin h2 {
+    font-family: var(--ff-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: .35rem;
+  }
+
+  #screen-admin p {
+    font-size: .82rem;
+    color: var(--text-lt);
+    margin-bottom: 2rem;
+  }
+
+  /* Status badge */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    background: rgba(245,239,228,.08);
+    border: 1px solid rgba(245,239,228,.15);
+    border-radius: 50px;
+    padding: .45rem 1.1rem;
+    font-size: .8rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    transition: all .4s ease;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #aaa;
+    transition: background .4s;
+  }
+
+  .status-badge.open .status-dot  { background: #52d18a; box-shadow: 0 0 8px #52d18a; }
+  .status-badge.closed .status-dot { background: #f08080; box-shadow: 0 0 8px #f08080; }
+  .status-badge.open  { border-color: rgba(82,209,138,.3); color: #a0f0c0; }
+  .status-badge.closed { border-color: rgba(240,128,128,.3); color: #f0a0a0; }
+
+  /* Big toggle button */
+  .btn-toggle {
+    width: 100%;
+    padding: 1.15rem;
+    border-radius: 50px;
+    border: none;
+    font-family: var(--ff-body);
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: .08em;
+    cursor: pointer;
+    transition: all .3s cubic-bezier(.34,1.56,.64,1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-toggle.to-close {
+    background: #d64444;
+    color: #fff;
+  }
+
+  .btn-toggle.to-open {
+    background: #2d9e6b;
+    color: #fff;
+  }
+
+  .btn-toggle:hover { transform: scale(1.02); }
+  .btn-toggle:active { transform: scale(0.98); }
+
+  .btn-toggle:disabled {
+    opacity: .5; cursor: wait;
+    transform: none;
+  }
+
+  .btn-back {
+    margin-top: 1.25rem;
+    background: none;
+    border: none;
+    color: var(--text-lt);
+    font-family: var(--ff-body);
+    font-size: .8rem;
+    cursor: pointer;
+    letter-spacing: .08em;
+    transition: color .2s;
+  }
+
+  .btn-back:hover { color: var(--caramel-lt); }
+
+  /* ── Spinner ── */
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    margin-right: .5rem;
+    vertical-align: middle;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed;
+    bottom: 1.5rem; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--caramel);
+    color: var(--espresso);
+    padding: .75rem 1.5rem;
+    border-radius: 50px;
+    font-size: .85rem;
+    font-weight: 500;
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+    z-index: 100;
+  }
+
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  a.back-link {
+    position: relative; z-index: 1;
+    display: inline-block;
+    margin-top: 2rem;
+    font-size: .75rem;
+    color: rgba(245,239,228,.35);
+    text-decoration: none;
+    letter-spacing: .1em;
+    transition: color .2s;
+  }
+  a.back-link:hover { color: var(--caramel-lt); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">The Family Brew</div>
+
+  <!-- Login Screen -->
+  <div id="screen-login">
+    <h2>Admin Access</h2>
+    <p>Enter the password to manage café status</p>
+    <div class="input-wrap">
+      <input type="password" id="pwd-input" placeholder="Password" autocomplete="current-password">
+    </div>
+    <button class="btn-login" id="btn-login">Enter</button>
+    <div class="error-msg" id="login-error"></div>
+  </div>
+
+  <!-- Admin Screen -->
+  <div id="screen-admin">
+    <h2>Café Control</h2>
+    <p>Toggle whether the café is accepting orders</p>
+
+    <div class="status-badge" id="status-badge">
+      <span class="status-dot"></span>
+      <span id="status-text">Checking…</span>
+    </div>
+
+    <button class="btn-toggle" id="btn-toggle" disabled>
+      Loading…
+    </button>
+
+    <br>
+    <button class="btn-back" id="btn-logout">🔒 Lock &amp; logout</button>
+  </div>
+</div>
+
+<a href="index.html" class="back-link">← Back to ordering page</a>
+
+<div id="toast"></div>
+
+<script>
+  // ══════════════════════════════════════════════
+  //  CONFIG — same URL as index.html
+  // ══════════════════════════════════════════════
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzZEunPObcpp03g5MlVwvleNINcAiDjK6USnoTtf82aBRsLboYkHwbtW103mYTykIyc/exec";
+  const ADMIN_PASSWORD = "mohsen1397"; // must match code.gs
+
+  // ── State ──────────────────────────────────────
+  let currentStatus = null;
+  let authedPassword = "";
+
+  // ── DOM ────────────────────────────────────────
+  const screenLogin = document.getElementById("screen-login");
+  const screenAdmin = document.getElementById("screen-admin");
+  const pwdInput    = document.getElementById("pwd-input");
+  const btnLogin    = document.getElementById("btn-login");
+  const loginError  = document.getElementById("login-error");
+  const statusBadge = document.getElementById("status-badge");
+  const statusText  = document.getElementById("status-text");
+  const btnToggle   = document.getElementById("btn-toggle");
+  const btnLogout   = document.getElementById("btn-logout");
+  const toast       = document.getElementById("toast");
+
+  // ── Login ──────────────────────────────────────
+  btnLogin.addEventListener("click", doLogin);
+  pwdInput.addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+
+  function doLogin() {
+    const pwd = pwdInput.value.trim();
+    if (!pwd) return;
+
+    if (pwd !== ADMIN_PASSWORD) {
+      loginError.textContent = "Incorrect password. Try again.";
+      pwdInput.value = "";
+      pwdInput.focus();
+      return;
+    }
+
+    authedPassword = pwd;
+    loginError.textContent = "";
+    screenLogin.style.display = "none";
+    screenAdmin.style.display = "block";
+    loadStatus();
+  }
+
+  // ── Logout ─────────────────────────────────────
+  btnLogout.addEventListener("click", () => {
+    authedPassword = "";
+    screenAdmin.style.display = "none";
+    screenLogin.style.display = "block";
+    pwdInput.value = "";
+  });
+
+  // ── Load Status ────────────────────────────────
+  async function loadStatus() {
+    statusText.textContent = "Checking…";
+    statusBadge.className = "status-badge";
+    btnToggle.disabled = true;
+    btnToggle.textContent = "Loading…";
+
+    try {
+      const res  = await fetch(`${SCRIPT_URL}?action=status`);
+      const data = await res.json();
+      currentStatus = data.status;
+      renderStatus();
+    } catch(e) {
+      statusText.textContent = "Error fetching status";
+    }
+  }
+
+  function renderStatus() {
+    const isOpen = currentStatus === "Open";
+    statusText.textContent = currentStatus;
+    statusBadge.className  = "status-badge " + (isOpen ? "open" : "closed");
+
+    btnToggle.disabled = false;
+    btnToggle.className = "btn-toggle " + (isOpen ? "to-close" : "to-open");
+    btnToggle.textContent = isOpen
+      ? "🔴  Close the Café"
+      : "🟢  Open the Café";
+  }
+
+  // ── Toggle ─────────────────────────────────────
+  btnToggle.addEventListener("click", async () => {
+    btnToggle.innerHTML = '<span class="spinner"></span> Updating…';
+    btnToggle.disabled = true;
+
+    try {
+      const res  = await fetch(`${SCRIPT_URL}?action=toggle&password=${encodeURIComponent(authedPassword)}`);
+      const data = await res.json();
+
+      if (data.success) {
+        currentStatus = data.status;
+        renderStatus();
+        showToast(currentStatus === "Open"
+          ? "☕ Café is now OPEN!"
+          : "🔒 Café is now CLOSED");
+      } else {
+        throw new Error(data.error || "Toggle failed");
+      }
+    } catch(e) {
+      showToast("⚠️ Something went wrong");
+      loadStatus();
+    }
+  });
+
+  // ── Toast ──────────────────────────────────────
+  let toastTimer;
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 3000);
+  }
+</script>
+</body>
+</html>
