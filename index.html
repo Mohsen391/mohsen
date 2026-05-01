@@ -432,17 +432,13 @@
   <div class="menu-section fade-up">
     <div class="section-label">Manual Brew</div>
     <div class="menu-grid">
-      <div class="menu-item" data-drink="Pour Over">
+      <div class="menu-item" data-drink="V60 Hot">
         <span class="icon">⏳</span>
-        <div><div class="name">Pour Over</div><div class="desc">Bright & clean</div></div>
+        <div><div class="name">V60 Hot</div><div class="desc">Bright & clean</div></div>
       </div>
-      <div class="menu-item" data-drink="French Press">
-        <span class="icon">🫙</span>
-        <div><div class="name">French Press</div><div class="desc">Full body & rich</div></div>
-      </div>
-      <div class="menu-item" data-drink="AeroPress">
-        <span class="icon">🔩</span>
-        <div><div class="name">AeroPress</div><div class="desc">Smooth & versatile</div></div>
+      <div class="menu-item" data-drink="V60 Cold">
+        <span class="icon">🧊</span>
+        <div><div class="name">V60 Cold</div><div class="desc">Chilled & crisp</div></div>
       </div>
       <div class="menu-item" data-drink="Moka Pot">
         <span class="icon">🏺</span>
@@ -467,10 +463,7 @@
         <span class="icon">🫗</span>
         <div><div class="name">Iced Americano</div><div class="desc">Bold & refreshing</div></div>
       </div>
-      <div class="menu-item" data-drink="Iced Matcha">
-        <span class="icon">🍵</span>
-        <div><div class="name">Iced Matcha</div><div class="desc">Earthy & vibrant</div></div>
-      </div>
+
     </div>
   </div>
 
@@ -511,7 +504,7 @@
   // ══════════════════════════════════════════════════════
   //  CONFIG — paste your deployed Apps Script URL below
   // ══════════════════════════════════════════════════════
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzZEunPObcpp03g5MlVwvleNINcAiDjK6USnoTtf82aBRsLboYkHwbtW103mYTykIyc/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwwzXMZThVd42u3n0nrVAmtJwcCR_8jl_wrcSRwv8Bev7tSuxWEuZxVCo7k3ee2n6NH/exec";
 
   // ── State ─────────────────────────────────────────────
   let selectedDrink = "";
@@ -572,7 +565,7 @@
 
   inputName.addEventListener("input", updateOrderButton);
 
-  // ── Submit Order ──────────────────────────────────────
+  // ── Submit Order (GET request avoids CORS issues with Apps Script) ──
   btnOrder.addEventListener("click", async () => {
     const name = inputName.value.trim();
     if (!name || !selectedDrink) return;
@@ -582,17 +575,16 @@
 
     const now = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
+    const params = new URLSearchParams({
+      action:         "order",
+      name:           name,
+      drink:          selectedDrink,
+      customizations: inputCustom.value.trim(),
+      time:           now,
+    });
+
     try {
-      const res = await fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          drink:          selectedDrink,
-          customizations: inputCustom.value.trim(),
-          time:           now,
-        }),
-      });
+      const res  = await fetch(`${SCRIPT_URL}?${params.toString()}`);
       const data = await res.json();
 
       if (data.success) {
