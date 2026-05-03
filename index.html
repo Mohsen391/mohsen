@@ -357,6 +357,41 @@
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* ── Payment Options ── */
+  .payment-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .6rem;
+  }
+
+  .payment-opt {
+    background: var(--cream);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: .75rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    transition: all .2s ease;
+    user-select: none;
+  }
+
+  .payment-opt:hover {
+    border-color: var(--caramel);
+    background: #FDF7EE;
+  }
+
+  .payment-opt.selected {
+    border-color: var(--caramel);
+    background: #FDF0DC;
+    box-shadow: 0 0 0 3px rgba(200,137,74,.15);
+  }
+
+  .pay-icon { font-size: 1.3rem; flex-shrink: 0; }
+  .pay-title { font-size: .85rem; font-weight: 500; color: var(--text); }
+  .pay-desc  { font-size: .7rem; color: var(--text-lt); margin-top: .1rem; }
+
   /* ── Fade In Animation ── */
   .fade-up {
     opacity: 0;
@@ -396,6 +431,20 @@
 </header>
 
 <main>
+  <div style="
+    text-align:center;
+    padding:.65rem 1rem;
+    background:var(--cream-dark);
+    border-bottom:1px solid var(--border);
+    font-size:.78rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--text-mid);
+    font-family:var(--ff-body);
+    font-weight:500;
+  ">
+    ☕ &nbsp; All drinks — <strong style="color:var(--caramel)">1.000 KWD</strong> &nbsp; ☕
+  </div>
 
   <!-- Espresso -->
   <div class="menu-section fade-up">
@@ -473,7 +522,7 @@
 
     <div class="form-row">
       <label>Your Name</label>
-      <input type="text" id="input-name" placeholder="e.g. Hessa, Sulaiman, Khaled…" autocomplete="off">
+      <input type="text" id="input-name" placeholder="e.g. Mum, Dad, Layla…" autocomplete="off">
     </div>
 
     <div class="form-row">
@@ -489,6 +538,26 @@
       <textarea id="input-custom" placeholder="e.g. oat milk, no sugar, extra hot, decaf…"></textarea>
     </div>
 
+    <div class="form-row">
+      <label>Payment</label>
+      <div class="payment-options">
+        <div class="payment-opt selected" data-payment="Pay Now" id="pay-now">
+          <span class="pay-icon">💳</span>
+          <div>
+            <div class="pay-title">Pay Now</div>
+            <div class="pay-desc">Pay when you collect</div>
+          </div>
+        </div>
+        <div class="payment-opt" data-payment="Add to Tab" id="pay-tab">
+          <span class="pay-icon">📋</span>
+          <div>
+            <div class="pay-title">Add to Tab</div>
+            <div class="pay-desc">Pay at end of month</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <button class="btn-order" id="btn-order" disabled>
       Place Order
     </button>
@@ -496,7 +565,7 @@
 
 </main>
 
-<footer>The Family Brew &mdash; Est. Today</footer>
+<footer>The Family Brew &mdash; Est. Today &nbsp;|&nbsp; <a href="tabs.html" style="color:var(--text-lt);text-decoration:none;transition:color .2s" onmouseover="this.style.color='var(--caramel)'" onmouseout="this.style.color='var(--text-lt)'">View Tabs ☕</a></footer>
 
 <div id="toast"></div>
 
@@ -504,7 +573,7 @@
   // ══════════════════════════════════════════════════════
   //  CONFIG — paste your deployed Apps Script URL below
   // ══════════════════════════════════════════════════════
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzoZm0wT2yjQalRt2Pg6YcAGdmPwlRBrXxrEBDJkAtXAnjd3rlPsAeUTKRQUK1swlB4zg/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrl3vOvyHuG0uvfxL4_F-LzkpS8OJMK29g6pqpdUZuQNLCZkNBUBS3E6ZAilAjgbHEDA/exec";
 
   // ── State ─────────────────────────────────────────────
   let selectedDrink = "";
@@ -542,7 +611,17 @@
     }
   }
 
-  // ── Menu Selection ────────────────────────────────────
+  // ── Payment Selection ────────────────────────────────────────
+  let selectedPayment = "Pay Now";
+  document.querySelectorAll(".payment-opt").forEach(opt => {
+    opt.addEventListener("click", () => {
+      document.querySelectorAll(".payment-opt").forEach(o => o.classList.remove("selected"));
+      opt.classList.add("selected");
+      selectedPayment = opt.dataset.payment;
+    });
+  });
+
+  // ── Menu Selection ────────────────────────────────────────
   document.querySelectorAll(".menu-item").forEach(item => {
     item.addEventListener("click", () => {
       document.querySelectorAll(".menu-item").forEach(i => i.classList.remove("selected"));
@@ -586,6 +665,7 @@
       drink:          selectedDrink,
       customizations: inputCustom.value.trim(),
       time:           now,
+      payment:        selectedPayment,
     });
 
     try {
