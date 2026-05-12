@@ -284,7 +284,8 @@
         </select>
       </div>
       <div class="add-drink-row">
-        <input type="text" id="new-drink-desc" placeholder="Short description e.g. Smooth & creamy">
+        <input type="text" id="new-drink-desc" placeholder="Description e.g. Smooth & creamy">
+        <input type="number" id="new-drink-price" step="0.001" min="0" value="1.000" placeholder="Price" style="max-width:90px">
         <button class="btn-add" onclick="addDrink()">+ Add</button>
       </div>
     </div>
@@ -304,18 +305,18 @@
 
   // Default menu stored in localStorage so it persists
   const DEFAULT_MENU = [
-    { name:"Espresso",      cat:"Espresso",    desc:"Pure & intense",      icon:"☕" },
-    { name:"Americano",     cat:"Espresso",    desc:"Espresso & hot water", icon:"🖤" },
-    { name:"Cappuccino",    cat:"Espresso",    desc:"Equal thirds",         icon:"☁️" },
-    { name:"Flat White",    cat:"Espresso",    desc:"Velvety microfoam",    icon:"🤍" },
-    { name:"Latte",         cat:"Espresso",    desc:"Smooth & milky",       icon:"🥛" },
-    { name:"Cortado",       cat:"Espresso",    desc:"Balanced cut",         icon:"🫧" },
-    { name:"V60 Hot",       cat:"Manual Brew", desc:"Bright & clean",       icon:"⏳" },
-    { name:"V60 Cold",      cat:"Manual Brew", desc:"Chilled & crisp",      icon:"🧊" },
-    { name:"Moka Pot",      cat:"Manual Brew", desc:"Stovetop espresso",    icon:"🏺" },
-    { name:"Iced Latte",    cat:"Iced",        desc:"Cool & creamy",        icon:"🧊" },
-    { name:"Cold Brew",     cat:"Iced",        desc:"12-hr steep",          icon:"🌊" },
-    { name:"Iced Americano",cat:"Iced",        desc:"Bold & refreshing",    icon:"🫗" },
+    { name:"Espresso",      cat:"Espresso",    desc:"Pure & intense",       icon:"☕", price:1.000 },
+    { name:"Americano",     cat:"Espresso",    desc:"Espresso & hot water", icon:"🖤", price:1.000 },
+    { name:"Cappuccino",    cat:"Espresso",    desc:"Equal thirds",         icon:"☁️", price:1.000 },
+    { name:"Flat White",    cat:"Espresso",    desc:"Velvety microfoam",    icon:"🤍", price:1.000 },
+    { name:"Latte",         cat:"Espresso",    desc:"Smooth & milky",       icon:"🥛", price:1.000 },
+    { name:"Cortado",       cat:"Espresso",    desc:"Balanced cut",         icon:"🫧", price:1.000 },
+    { name:"V60 Hot",       cat:"Manual Brew", desc:"Bright & clean",       icon:"⏳", price:1.000 },
+    { name:"V60 Cold",      cat:"Manual Brew", desc:"Chilled & crisp",      icon:"🧊", price:1.000 },
+    { name:"Moka Pot",      cat:"Manual Brew", desc:"Stovetop espresso",    icon:"🏺", price:1.000 },
+    { name:"Iced Latte",    cat:"Iced",        desc:"Cool & creamy",        icon:"🧊", price:1.000 },
+    { name:"Cold Brew",     cat:"Iced",        desc:"12-hr steep",          icon:"🌊", price:1.000 },
+    { name:"Iced Americano",cat:"Iced",        desc:"Bold & refreshing",    icon:"🫗", price:1.000 },
   ];
 
   const ICONS = { "Espresso":"☕","Manual Brew":"⏳","Iced":"🧊" };
@@ -498,9 +499,20 @@
               ? `<div style="font-size:.78rem;color:rgba(245,239,228,.25);padding:.3rem .5rem">No drinks in this category</div>`
               : items.map(d => `
                 <div class="menu-item-row">
-                  <span>${d.icon || "☕"} <span class="menu-item-name">${esc(d.name)}</span>
-                  <span class="menu-item-cat">${esc(d.desc)}</span></span>
-                  <button class="btn-del" onclick="deleteDrink('${esc(d.name)}')">✕ Remove</button>
+                  <span style="display:flex;align-items:center;gap:.4rem;flex:1">
+                    ${d.icon || "☕"}
+                    <span class="menu-item-name">${esc(d.name)}</span>
+                    <span class="menu-item-cat">${esc(d.desc)}</span>
+                  </span>
+                  <span style="display:flex;align-items:center;gap:.4rem;flex-shrink:0">
+                    <span style="font-size:.7rem;color:rgba(245,239,228,.35)">KWD</span>
+                    <input type="number" step="0.001" min="0" value="${(d.price||1).toFixed(3)}"
+                      onchange="updatePrice('${esc(d.name)}', this.value)"
+                      style="width:58px;background:rgba(245,239,228,.08);border:1px solid rgba(245,239,228,.15);
+                      border-radius:6px;padding:.25rem .4rem;font-family:var(--ff-body);font-size:.78rem;
+                      color:var(--cream);outline:none;text-align:center;margin-bottom:0;">
+                    <button class="btn-del" onclick="deleteDrink('${esc(d.name)}')">✕</button>
+                  </span>
                 </div>`).join("")
             }
           </div>
@@ -517,10 +529,22 @@
     showToast(`"${name}" removed from menu`);
   }
 
+  function updatePrice(name, value) {
+    let menu = getMenu();
+    const idx = menu.findIndex(d => d.name === name);
+    if (idx !== -1) {
+      menu[idx].price = parseFloat(value) || 1.000;
+      saveMenu(menu);
+      pushMenuToOrderPage();
+      showToast(`"${name}" price updated to KWD ${menu[idx].price.toFixed(3)}`);
+    }
+  }
+
   function addDrink() {
-    const name = document.getElementById("new-drink-name").value.trim();
-    const cat  = document.getElementById("new-drink-cat").value;
-    const desc = document.getElementById("new-drink-desc").value.trim();
+    const name  = document.getElementById("new-drink-name").value.trim();
+    const cat   = document.getElementById("new-drink-cat").value;
+    const desc  = document.getElementById("new-drink-desc").value.trim();
+    const price = parseFloat(document.getElementById("new-drink-price").value) || 1.000;
     if (!name) { showToast("Enter a drink name", true); return; }
 
     let menu = getMenu();
@@ -529,13 +553,14 @@
     }
 
     const icon = cat === "Espresso" ? "☕" : cat === "Manual Brew" ? "⏳" : "🧊";
-    menu.push({ name, cat, desc: desc || "New drink", icon });
+    menu.push({ name, cat, desc: desc || "New drink", icon, price });
     saveMenu(menu);
     renderMenuManager();
     pushMenuToOrderPage();
     showToast(`"${name}" added to menu!`);
     document.getElementById("new-drink-name").value = "";
     document.getElementById("new-drink-desc").value = "";
+    document.getElementById("new-drink-price").value = "1.000";
   }
 
   // Signal the ordering page to reload menu (via localStorage event)
