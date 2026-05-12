@@ -398,18 +398,23 @@
     btn.innerHTML = '<span class="spinner"></span>';
     try {
       const url  = `${SCRIPT_URL}?action=toggle&password=${encodeURIComponent(authedPwd)}`;
+      console.log("Toggle URL:", url);
       const res  = await fetch(url);
-      const data = await res.json();
+      console.log("Response status:", res.status);
+      const text = await res.text();
+      console.log("Response text:", text);
+      const data = JSON.parse(text);
       if (data.success) {
         renderStatus(data.status);
         showToast(data.status === "Open" ? "☕ Café is now OPEN" : "🔒 Café is now CLOSED");
       } else {
-        showToast("Error: " + (data.error || "Unknown"), true);
+        showToast("Script error: " + (data.error || "Unknown"), true);
         btn.disabled = false;
         btn.textContent = "Retry";
       }
     } catch(e) {
-      showToast("Connection error — try again", true);
+      console.error("Toggle error:", e);
+      showToast("Error: " + e.message, true);
       btn.disabled = false;
       btn.textContent = "Retry";
       loadStatus();
