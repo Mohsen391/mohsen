@@ -357,6 +357,15 @@
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* ── Price Tag ── */
+  .price-tag {
+    font-size:.72rem;
+    color:var(--caramel);
+    font-weight:500;
+    margin-top:.2rem;
+    letter-spacing:.03em;
+  }
+
   /* ── Payment Options ── */
   .payment-options {
     display: grid;
@@ -431,20 +440,7 @@
 </header>
 
 <main>
-  <div style="
-    text-align:center;
-    padding:.65rem 1rem;
-    background:var(--cream-dark);
-    border-bottom:1px solid var(--border);
-    font-size:.78rem;
-    letter-spacing:.12em;
-    text-transform:uppercase;
-    color:var(--text-mid);
-    font-family:var(--ff-body);
-    font-weight:500;
-  ">
-    ☕ &nbsp; All drinks — <strong style="color:var(--caramel)">1.000 KWD</strong> &nbsp; ☕
-  </div>
+  
 
   <!-- Dynamic Menu -->
   <div id="menu-container"></div>
@@ -510,6 +506,7 @@
 
   // ── State ─────────────────────────────────────────────
   let selectedDrink = "";
+  let selectedPrice = 1.000;
   let cafeOpen      = true;
 
   // ── DOM refs ──────────────────────────────────────────
@@ -599,6 +596,7 @@
       customizations: inputCustom.value.trim(),
       time:           now,
       payment:        selectedPayment,
+      price:          selectedPrice.toFixed(3),
     });
 
     try {
@@ -747,18 +745,18 @@
 
   // ── Dynamic Menu ─────────────────────────────────────────────
   const DEFAULT_MENU = [
-    { name:"Espresso",      cat:"Espresso",    desc:"Pure & intense",       icon:"☕" },
-    { name:"Americano",     cat:"Espresso",    desc:"Espresso & hot water",  icon:"🖤" },
-    { name:"Cappuccino",    cat:"Espresso",    desc:"Equal thirds",          icon:"☁️" },
-    { name:"Flat White",    cat:"Espresso",    desc:"Velvety microfoam",     icon:"🤍" },
-    { name:"Latte",         cat:"Espresso",    desc:"Smooth & milky",        icon:"🥛" },
-    { name:"Cortado",       cat:"Espresso",    desc:"Balanced cut",          icon:"🫧" },
-    { name:"V60 Hot",       cat:"Manual Brew", desc:"Bright & clean",        icon:"⏳" },
-    { name:"V60 Cold",      cat:"Manual Brew", desc:"Chilled & crisp",       icon:"🧊" },
-    { name:"Moka Pot",      cat:"Manual Brew", desc:"Stovetop espresso",     icon:"🏺" },
-    { name:"Iced Latte",    cat:"Iced",        desc:"Cool & creamy",         icon:"🧊" },
-    { name:"Cold Brew",     cat:"Iced",        desc:"12-hr steep",           icon:"🌊" },
-    { name:"Iced Americano",cat:"Iced",        desc:"Bold & refreshing",     icon:"🫗" },
+    { name:"Espresso",      cat:"Espresso",    desc:"Pure & intense",       icon:"☕", price:1.000 },
+    { name:"Americano",     cat:"Espresso",    desc:"Espresso & hot water", icon:"🖤", price:1.000 },
+    { name:"Cappuccino",    cat:"Espresso",    desc:"Equal thirds",         icon:"☁️", price:1.000 },
+    { name:"Flat White",    cat:"Espresso",    desc:"Velvety microfoam",    icon:"🤍", price:1.000 },
+    { name:"Latte",         cat:"Espresso",    desc:"Smooth & milky",       icon:"🥛", price:1.000 },
+    { name:"Cortado",       cat:"Espresso",    desc:"Balanced cut",         icon:"🫧", price:1.000 },
+    { name:"V60 Hot",       cat:"Manual Brew", desc:"Bright & clean",       icon:"⏳", price:1.000 },
+    { name:"V60 Cold",      cat:"Manual Brew", desc:"Chilled & crisp",      icon:"🧊", price:1.000 },
+    { name:"Moka Pot",      cat:"Manual Brew", desc:"Stovetop espresso",    icon:"🏺", price:1.000 },
+    { name:"Iced Latte",    cat:"Iced",        desc:"Cool & creamy",        icon:"🧊", price:1.000 },
+    { name:"Cold Brew",     cat:"Iced",        desc:"12-hr steep",          icon:"🌊", price:1.000 },
+    { name:"Iced Americano",cat:"Iced",        desc:"Bold & refreshing",    icon:"🫗", price:1.000 },
   ];
 
   function getMenu() {
@@ -781,9 +779,13 @@
           <div class="section-label">${cat}</div>
           <div class="menu-grid">
             ${items.map(d => `
-              <div class="menu-item" data-drink="${d.name}">
+              <div class="menu-item" data-drink="${d.name}" data-price="${(d.price||1).toFixed(3)}">
                 <span class="icon">${d.icon || "☕"}</span>
-                <div><div class="name">${d.name}</div><div class="desc">${d.desc}</div></div>
+                <div>
+                  <div class="name">${d.name}</div>
+                  <div class="desc">${d.desc}</div>
+                  <div class="price-tag">KWD ${(d.price||1).toFixed(3)}</div>
+                </div>
               </div>`).join("")}
           </div>
         </div>`;
@@ -795,8 +797,9 @@
         document.querySelectorAll(".menu-item").forEach(i => i.classList.remove("selected"));
         item.classList.add("selected");
         selectedDrink = item.dataset.drink;
+        selectedPrice = parseFloat(item.dataset.price) || 1.000;
         inputDrink.value = selectedDrink;
-        drinkDisplay.textContent = selectedDrink;
+        drinkDisplay.textContent = selectedDrink + "  —  KWD " + selectedPrice.toFixed(3);
         drinkDisplay.style.color = "var(--espresso)";
         drinkDisplay.style.fontStyle = "normal";
         if (cafeOpen) updateOrderButton();
