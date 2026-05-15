@@ -176,7 +176,11 @@
 </header>
 
 <main>
-  <a href="index.html" class="nav-link">← Back to ordering</a>
+  <div style="display:flex;gap:.75rem;margin-bottom:1.5rem;">
+    <a href="index.html" style="font-size:.78rem;color:var(--text-lt);text-decoration:none;letter-spacing:.08em;transition:color .2s" onmouseover="this.style.color='var(--caramel)'" onmouseout="this.style.color='var(--text-lt)'">← Ordering Page</a>
+    <span style="color:var(--border)">|</span>
+    <a href="admin.html" style="font-size:.78rem;color:var(--text-lt);text-decoration:none;letter-spacing:.08em;transition:color .2s" onmouseover="this.style.color='var(--caramel)'" onmouseout="this.style.color='var(--text-lt)'">⚙ Admin Panel</a>
+  </div>
 
   <!-- Total summary -->
   <div id="total-banner" class="total-banner" style="display:none">
@@ -209,7 +213,7 @@
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL     = "https://script.google.com/macros/s/AKfycbxTmifDPVG9_bzYlqYMhmd7dtMjEEfkpmo7bBtaJckcz2fn4wyFBBv1ooEIfzSXm3qy6g/exec";
+  const SCRIPT_URL     = "https://script.google.com/macros/s/AKfycbzjcsHO8bvz6AtimqiiB8nq7Kh4jMPOq1MgBzMhTh3e1A_Hz8_po141CQDnlpAZHkiLEg/exec";
   const ADMIN_PASSWORD = "mohsen";
 
   const tabsList    = document.getElementById("tabs-list");
