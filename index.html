@@ -502,7 +502,7 @@
   // ══════════════════════════════════════════════════════
   //  CONFIG — paste your deployed Apps Script URL below
   // ══════════════════════════════════════════════════════
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTmifDPVG9_bzYlqYMhmd7dtMjEEfkpmo7bBtaJckcz2fn4wyFBBv1ooEIfzSXm3qy6g/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzjcsHO8bvz6AtimqiiB8nq7Kh4jMPOq1MgBzMhTh3e1A_Hz8_po141CQDnlpAZHkiLEg/exec";
 
   // ── State ─────────────────────────────────────────────
   let selectedDrink = "";
@@ -743,31 +743,41 @@
     toastTimer = setTimeout(() => { toast.className = ""; }, 4500);
   }
 
-  // ── Dynamic Menu ─────────────────────────────────────────────
-  const DEFAULT_MENU = [
-    { name:"Espresso",      cat:"Espresso",    desc:"Pure & intense",       icon:"☕", price:1.000 },
-    { name:"Americano",     cat:"Espresso",    desc:"Espresso & hot water", icon:"🖤", price:1.000 },
-    { name:"Cappuccino",    cat:"Espresso",    desc:"Equal thirds",         icon:"☁️", price:1.000 },
-    { name:"Flat White",    cat:"Espresso",    desc:"Velvety microfoam",    icon:"🤍", price:1.000 },
-    { name:"Latte",         cat:"Espresso",    desc:"Smooth & milky",       icon:"🥛", price:1.000 },
-    { name:"Cortado",       cat:"Espresso",    desc:"Balanced cut",         icon:"🫧", price:1.000 },
-    { name:"V60 Hot",       cat:"Manual Brew", desc:"Bright & clean",       icon:"⏳", price:1.000 },
-    { name:"V60 Cold",      cat:"Manual Brew", desc:"Chilled & crisp",      icon:"🧊", price:1.000 },
-    { name:"Moka Pot",      cat:"Manual Brew", desc:"Stovetop espresso",    icon:"🏺", price:1.000 },
-    { name:"Iced Latte",    cat:"Iced",        desc:"Cool & creamy",        icon:"🧊", price:1.000 },
-    { name:"Cold Brew",     cat:"Iced",        desc:"12-hr steep",          icon:"🌊", price:1.000 },
-    { name:"Iced Americano",cat:"Iced",        desc:"Bold & refreshing",    icon:"🫗", price:1.000 },
-  ];
-
-  function getMenu() {
+  // ── Dynamic Menu (loaded from Google Sheets) ─────────────────
+  async function loadAndRenderMenu() {
+    const container = document.getElementById("menu-container");
+    container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-lt);font-size:.85rem">Loading menu…</div>`;
     try {
-      const saved = localStorage.getItem("familybrew_menu");
-      return saved ? JSON.parse(saved) : DEFAULT_MENU;
-    } catch(e) { return DEFAULT_MENU; }
+      const res  = await fetch(`${SCRIPT_URL}?action=getmenu`);
+      const data = await res.json();
+      if (data.success && data.menu.length > 0) {
+        renderMenu(data.menu);
+      } else {
+        renderMenu(getDefaultMenu());
+      }
+    } catch(e) {
+      renderMenu(getDefaultMenu());
+    }
   }
 
-  function renderMenu() {
-    const menu = getMenu();
+  function getDefaultMenu() {
+    return [
+      { name:"Espresso",      cat:"Espresso",    desc:"Pure & intense",       icon:"☕", price:1.000 },
+      { name:"Americano",     cat:"Espresso",    desc:"Espresso & hot water", icon:"🖤", price:1.000 },
+      { name:"Cappuccino",    cat:"Espresso",    desc:"Equal thirds",         icon:"☁️", price:1.000 },
+      { name:"Flat White",    cat:"Espresso",    desc:"Velvety microfoam",    icon:"🤍", price:1.000 },
+      { name:"Latte",         cat:"Espresso",    desc:"Smooth & milky",       icon:"🥛", price:1.000 },
+      { name:"Cortado",       cat:"Espresso",    desc:"Balanced cut",         icon:"🫧", price:1.000 },
+      { name:"V60 Hot",       cat:"Manual Brew", desc:"Bright & clean",       icon:"⏳", price:1.000 },
+      { name:"V60 Cold",      cat:"Manual Brew", desc:"Chilled & crisp",      icon:"🧊", price:1.000 },
+      { name:"Moka Pot",      cat:"Manual Brew", desc:"Stovetop espresso",    icon:"🏺", price:1.000 },
+      { name:"Iced Latte",    cat:"Iced",        desc:"Cool & creamy",        icon:"🧊", price:1.000 },
+      { name:"Cold Brew",     cat:"Iced",        desc:"12-hr steep",          icon:"🌊", price:1.000 },
+      { name:"Iced Americano",cat:"Iced",        desc:"Bold & refreshing",    icon:"🫗", price:1.000 },
+    ];
+  }
+
+  function renderMenu(menu) {
     const cats = ["Espresso", "Manual Brew", "Iced"];
     const container = document.getElementById("menu-container");
 
@@ -781,17 +791,13 @@
             ${items.map(d => `
               <div class="menu-item" data-drink="${d.name}" data-price="${(d.price||1).toFixed(3)}">
                 <span class="icon">${d.icon || "☕"}</span>
-                <div>
-                  <div class="name">${d.name}</div>
-                  <div class="desc">${d.desc}</div>
-                  <div class="price-tag">KWD ${(d.price||1).toFixed(3)}</div>
-                </div>
+                <div><div class="name">${d.name}</div><div class="desc">${d.desc}</div>
+                <div class="price-tag">KWD ${(d.price||1).toFixed(3)}</div></div>
               </div>`).join("")}
           </div>
         </div>`;
     }).join("");
 
-    // Re-attach click listeners
     document.querySelectorAll(".menu-item").forEach(item => {
       item.addEventListener("click", () => {
         document.querySelectorAll(".menu-item").forEach(i => i.classList.remove("selected"));
@@ -807,14 +813,8 @@
     });
   }
 
-  // Listen for menu updates from admin page
-  window.addEventListener("storage", (e) => {
-    if (e.key === "familybrew_menu_updated") renderMenu();
-    if (e.key === "familybrew_menu") renderMenu();
-  });
-
   // ── Init ───────────────────────────────────────────────
-  renderMenu();
+  loadAndRenderMenu();
   checkStatus();
 </script>
 
