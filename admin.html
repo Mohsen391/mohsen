@@ -297,7 +297,7 @@
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL     = "https://script.google.com/macros/s/AKfycbxTmifDPVG9_bzYlqYMhmd7dtMjEEfkpmo7bBtaJckcz2fn4wyFBBv1ooEIfzSXm3qy6g/exec";
+  const SCRIPT_URL     = "https://script.google.com/macros/s/AKfycbzjcsHO8bvz6AtimqiiB8nq7Kh4jMPOq1MgBzMhTh3e1A_Hz8_po141CQDnlpAZHkiLEg/exec";
   const ADMIN_PASSWORD = "mohsen";
 
   let authedPwd    = "";
@@ -488,12 +488,23 @@
     }
   }
 
-  // ── Menu Manager ─────────────────────────────────────────
-  function renderMenuManager() {
-    const menu = getMenu();
+  // ── Menu Manager (synced with Google Sheets) ─────────────────
+  async function renderMenuManager() {
+    const list = document.getElementById("menu-list");
+    list.innerHTML = `<div style="text-align:center;padding:1rem;color:rgba(245,239,228,.3);font-size:.82rem">Loading…</div>`;
+    try {
+      const res  = await fetch(`${SCRIPT_URL}?action=getmenu`);
+      const data = await res.json();
+      if (data.success) buildMenuUI(data.menu);
+      else list.innerHTML = `<div style="color:#f08080;font-size:.8rem;padding:.5rem">Error loading menu</div>`;
+    } catch(e) {
+      list.innerHTML = `<div style="color:#f08080;font-size:.8rem;padding:.5rem">Connection error</div>`;
+    }
+  }
+
+  function buildMenuUI(menu) {
     const cats = ["Espresso", "Manual Brew", "Iced"];
     const list = document.getElementById("menu-list");
-
     list.innerHTML = cats.map(cat => {
       const items = menu.filter(d => d.cat === cat);
       return `
@@ -501,7 +512,7 @@
           <div class="menu-cat-label">${cat}</div>
           <div class="menu-items-list">
             ${items.length === 0
-              ? `<div style="font-size:.78rem;color:rgba(245,239,228,.25);padding:.3rem .5rem">No drinks in this category</div>`
+              ? `<div style="font-size:.78rem;color:rgba(245,239,228,.25);padding:.3rem .5rem">No drinks</div>`
               : items.map(d => `
                 <div class="menu-item-row">
                   <span style="display:flex;align-items:center;gap:.4rem;flex:1">
@@ -513,7 +524,7 @@
                     <span style="font-size:.7rem;color:rgba(245,239,228,.35)">KWD</span>
                     <input type="number" step="0.001" min="0" value="${(d.price||1).toFixed(3)}"
                       onchange="updatePrice('${esc(d.name)}', this.value)"
-                      style="width:58px;background:rgba(245,239,228,.08);border:1px solid rgba(245,239,228,.15);
+                      style="width:62px;background:rgba(245,239,228,.08);border:1px solid rgba(245,239,228,.15);
                       border-radius:6px;padding:.25rem .4rem;font-family:var(--ff-body);font-size:.78rem;
                       color:var(--cream);outline:none;text-align:center;margin-bottom:0;">
                     <button class="btn-del" onclick="deleteDrink('${esc(d.name)}')">✕</button>
@@ -525,55 +536,48 @@
     }).join("");
   }
 
-  function deleteDrink(name) {
-    let menu = getMenu();
-    menu = menu.filter(d => d.name !== name);
-    saveMenu(menu);
-    renderMenuManager();
-    pushMenuToOrderPage();
-    showToast(`"${name}" removed from menu`);
+  async function deleteDrink(name) {
+    if (!confirm(`Remove "${name}" from the menu?`)) return;
+    try {
+      const res  = await fetch(`${SCRIPT_URL}?action=deletemenu&password=${encodeURIComponent(authedPwd)}&name=${encodeURIComponent(name)}`);
+      const data = await res.json();
+      if (data.success) { showToast(`"${name}" removed!`); renderMenuManager(); }
+      else showToast("Error: " + data.error, true);
+    } catch(e) { showToast("Connection error", true); }
   }
 
-  function updatePrice(name, value) {
-    let menu = getMenu();
-    const idx = menu.findIndex(d => d.name === name);
-    if (idx !== -1) {
-      menu[idx].price = parseFloat(value) || 1.000;
-      saveMenu(menu);
-      pushMenuToOrderPage();
-      showToast(`"${name}" price updated to KWD ${menu[idx].price.toFixed(3)}`);
-    }
+  async function updatePrice(name, value) {
+    const price = parseFloat(value) || 1.000;
+    try {
+      const res  = await fetch(`${SCRIPT_URL}?action=updateprice&password=${encodeURIComponent(authedPwd)}&name=${encodeURIComponent(name)}&price=${price.toFixed(3)}`);
+      const data = await res.json();
+      if (data.success) showToast(`"${name}" → KWD ${price.toFixed(3)}`);
+      else showToast("Error: " + data.error, true);
+    } catch(e) { showToast("Connection error", true); }
   }
 
-  function addDrink() {
+  async function addDrink() {
     const name  = document.getElementById("new-drink-name").value.trim();
     const cat   = document.getElementById("new-drink-cat").value;
     const desc  = document.getElementById("new-drink-desc").value.trim();
     const price = parseFloat(document.getElementById("new-drink-price").value) || 1.000;
     if (!name) { showToast("Enter a drink name", true); return; }
-
-    let menu = getMenu();
-    if (menu.find(d => d.name.toLowerCase() === name.toLowerCase())) {
-      showToast("Drink already exists", true); return;
-    }
-
     const icon = cat === "Espresso" ? "☕" : cat === "Manual Brew" ? "⏳" : "🧊";
-    menu.push({ name, cat, desc: desc || "New drink", icon, price });
-    saveMenu(menu);
-    renderMenuManager();
-    pushMenuToOrderPage();
-    showToast(`"${name}" added to menu!`);
-    document.getElementById("new-drink-name").value = "";
-    document.getElementById("new-drink-desc").value = "";
-    document.getElementById("new-drink-price").value = "1.000";
+    try {
+      const params = new URLSearchParams({ action:"addmenu", password:authedPwd, name, cat, desc:desc||"New drink", icon, price:price.toFixed(3) });
+      const res  = await fetch(`${SCRIPT_URL}?${params}`);
+      const data = await res.json();
+      if (data.success) {
+        showToast(`"${name}" added!`);
+        renderMenuManager();
+        document.getElementById("new-drink-name").value = "";
+        document.getElementById("new-drink-desc").value = "";
+        document.getElementById("new-drink-price").value = "1.000";
+      } else showToast("Error: " + data.error, true);
+    } catch(e) { showToast("Connection error", true); }
   }
 
-  // Signal the ordering page to reload menu (via localStorage event)
-  function pushMenuToOrderPage() {
-    localStorage.setItem("familybrew_menu_updated", Date.now().toString());
-  }
-
-  // ── Helpers ───────────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────────────────────────────────────────────────
   function esc(s) {
     return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
   }
